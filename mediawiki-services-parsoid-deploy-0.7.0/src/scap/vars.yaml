@@ -1,0 +1,19 @@
+# log-related variables
+log_name: parsoid
+logstash_host: localhost
+logstash_port: 12201
+log_file: /tmp/parsoid.log
+# metrics
+metrics_name: parsoid
+metrics_host: localhost
+metrics_port: 8252
+# service
+name: parsoid
+port: 8000
+localsettings: conf/wmf/localsettings.js
+load_wmf: true
+linting: true
+linter_send_api: true
+mwapi_server:
+mwapi_proxy:
+

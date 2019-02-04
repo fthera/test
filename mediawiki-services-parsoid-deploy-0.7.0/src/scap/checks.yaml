@@ -1,0 +1,11 @@
+checks:
+  depool:
+    type: command
+    stage: promote
+    command: depool-parsoid
+    timeout: 60
+  repool:
+    type: command
+    stage: restart_service
+    command: pool-parsoid
+    timeout: 60

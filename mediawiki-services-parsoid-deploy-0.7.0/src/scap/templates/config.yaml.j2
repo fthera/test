@@ -1,0 +1,69 @@
+# Number of worker processes to spawn.
+# Set to 0 to run everything in a single process without clustering.
+# Use 'ncpu' to run as many workers as there are CPU units
+num_workers: ncpu
+
+# Log error messages and gracefully restart a worker if v8 reports that it
+# uses more heap (note: not RSS) than this many mb.
+worker_heap_limit_mb: 600
+
+# The maximum interval in ms that can pass between two beat messages
+# sent by each worker to the master before it is killed.
+#
+# This is slightly larger than the request timeout so the request is
+# guaranteed to use its full 110s time allocation to complete its
+# parse while contending for cpu time with other concurrent requests.
+worker_heartbeat_timeout: 115000
+
+# Logger info
+logging:
+  level: warn
+  name: <%= log_name %>
+  streams:
+    - host: <%= logstash_host %>
+      port: <%= logstash_port %>
+      type: gelf
+    - level: info
+      path: <%= log_file %>
+      type: file
+
+# Statsd metrics reporter
+metrics:
+  name: <%= metrics_name %>
+  host: <%= metrics_host %>
+  port: <%= metrics_port %>
+  type: statsd
+
+services:
+  - name: <%= name %>
+    entrypoint: apiServiceWorker
+    module: src/lib/index.js
+    conf:
+      port: <%= port %>
+      localsettings: <%= localsettings %>
+
+      allowCORS: "*"
+      loadWMF: <%= load_wmf %>
+      useSelser: true
+      useBatchAPI: true
+      usePHPPreProcessor: true
+      linting: <%= linting %>
+      linterSendAPI: <%= linter_send_api %>
+
+      mwApiServer: <%= mwapi_server if mwapi_server else '' %>
+      defaultAPIProxyURI: <%= mwapi_proxy if mwapi_proxy else '' %>
+
+      timeouts:
+        # RESTBase uses a 2 minute timeout for the first request.
+        #
+        # Set ours to 110s so we time out before RB times out and retries.
+        # This prevents RB from retrying slow requests altogether.
+        request: 110000
+        mwApi:
+          # Bump batch timeout to 65s (higher than MW API timeout of 60s)
+          batch: 65000
+
+      limits:
+        wt2html:
+          maxTableCells: 40000
+          maxListItems: 40000
